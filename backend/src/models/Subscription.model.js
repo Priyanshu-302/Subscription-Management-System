@@ -78,10 +78,6 @@ const subscriptionSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    notifySms: {
-      type: Boolean,
-      default: true,
-    },
     category: {
       type: String,
       trim: true,
@@ -91,46 +87,6 @@ const subscriptionSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
-// Compound Indexing
-
-// 1. For the renewal checker
-subscriptionSchema.index({ status: 1, nextRenewal: 1 });
-
-// 2. For the dashboard queries
-subscriptionSchema.index({ userId: 1, status: 1 });
-
-// Calculate the next renewal date
-subscriptionSchema.statics.calcNextRenewal = function (fromDate, billingCycle) {
-  const date = new Date(fromDate);
-  switch (billingCycle) {
-    case "WEEKLY":
-      date.setDate(date.getDate() + 7);
-      break;
-    case "MONTHLY":
-      date.setMonth(date.getMonth() + 1);
-      break;
-    case "QUARTERLY":
-      date.setMonth(date.getMonth() + 3);
-      break;
-    case "YEARLY":
-      date.setFullYear(date.getFullYear() + 1);
-      break;
-    default:
-      date.setMonth(date.getMonth() + 1);
-  }
-
-  return date;
-};
-
-// Instance method
-subscriptionSchema.methods.advanceRenewal = function () {
-  this.nextRenewal = this.constructor.calcNextRenewal(
-    this.nextRenewal,
-    this.billingCycle,
-  );
-  return this;
-};
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
 

@@ -55,19 +55,12 @@ const userSchema = new mongoose.Schema(
         type: Boolean,
         default: true,
       },
-      sms: {
-        type: Boolean,
-        default: true,
-      },
     },
   },
   {
     timestamps: true,
   },
 );
-
-// Indexing on email
-userSchema.index({ email: 1 });
 
 const User = mongoose.model("User", userSchema);
 
