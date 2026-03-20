@@ -54,7 +54,7 @@ const subscriptionSchema = new mongoose.Schema(
       trim: true,
       uppercase: true,
       enum: {
-        values: ["ACTIVE", "INACTIVE"],
+        values: ["ACTIVE", "EXPIRED"],
       },
       default: "ACTIVE",
       index: true,

@@ -1,6 +1,5 @@
 const Notification = require("../models/Notification.model");
 const emailService = require("../services/email.service");
-const mongoose = require("mongoose");
 
 exports.sendRenewalRemainder = async (user, subscription) => {
   try {

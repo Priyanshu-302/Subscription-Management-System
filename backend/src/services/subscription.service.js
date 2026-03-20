@@ -41,6 +41,14 @@ exports.createSubscription = async (userId, subscriptionData) => {
 
     const nextRenewal = this.calcNextRenewal(startDate, billingCycle);
 
+    const existingSubscription = await Subscription.findOne({
+      name,
+    });
+
+    if (existingSubscription) {
+      throw new Error("Subscription already exists");
+    }
+
     const subscription = await Subscription.create({
       userId,
       name,
@@ -158,13 +166,14 @@ exports.getSummary = async (userId) => {
   try {
     const summary = await Subscription.aggregate([
       {
-        // Condition on which the summary will work
         $match: {
           userId: new mongoose.Types.ObjectId(userId.toString()),
           status: "ACTIVE",
         },
+      },
+      {
         $group: {
-          _id: "$currency",
+          _id: "$category",
           totalSubscriptions: { $sum: 1 },
           monthlyEstimate: {
             $sum: {
@@ -196,19 +205,19 @@ exports.getSummary = async (userId) => {
               $switch: {
                 branches: [
                   {
-                    case: { $eq: ["$billingCycle", "monthly"] },
+                    case: { $eq: ["$billingCycle", "MONTHLY"] },
                     then: { $multiply: ["$amount", 12] },
                   },
                   {
-                    case: { $eq: ["$billingCycle", "yearly"] },
+                    case: { $eq: ["$billingCycle", "YEARLY"] },
                     then: "$amount",
                   },
                   {
-                    case: { $eq: ["$billingCycle", "quarterly"] },
+                    case: { $eq: ["$billingCycle", "QUARTERLY"] },
                     then: { $multiply: ["$amount", 4] },
                   },
                   {
-                    case: { $eq: ["$billingCycle", "weekly"] },
+                    case: { $eq: ["$billingCycle", "WEEKLY"] },
                     then: { $multiply: ["$amount", 52] },
                   },
                 ],

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcryptjs = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,7 +22,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide a password"],
       minlength: [8, "Password must have more or equal then 8 characters"],
-      maxlength: [8, "Password must have more or equal then 8 characters"],
       select: false,
       match: [
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
@@ -61,6 +61,11 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return next(); // skip if password unchanged
+  this.password = await bcryptjs.hash(this.password, 10);
+});
 
 const User = mongoose.model("User", userSchema);
 
