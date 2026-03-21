@@ -29,22 +29,10 @@ const userSchema = new mongoose.Schema(
       ],
     },
     phone: {
-      type: Number,
+      type: String,
       required: [true, "Please provide a phone number"],
       unique: true,
-      match: [
-        /^(\+91[\-\s]?)?[6-9]\d{9}$/,
-        "Please provide a valid phone number.",
-      ],
-      minlength: [
-        10,
-        "Phone number must have more or equal then 10 characters",
-      ],
-      maxlength: [
-        10,
-        "Phone number must have less or equal then 10 characters",
-      ],
-      default: null,
+      trim: true,
     },
     isVerified: {
       type: Boolean,
@@ -52,6 +40,10 @@ const userSchema = new mongoose.Schema(
     },
     notificationPreferences: {
       email: {
+        type: Boolean,
+        default: true,
+      },
+      sms: {
         type: Boolean,
         default: true,
       },

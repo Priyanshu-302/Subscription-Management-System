@@ -1,5 +1,6 @@
 const Notification = require("../models/Notification.model");
 const emailService = require("../services/email.service");
+const smsService = require("../services/sms.service");
 
 exports.sendRenewalRemainder = async (user, subscription) => {
   try {
@@ -26,14 +27,21 @@ exports.sendRenewalRemainder = async (user, subscription) => {
       },
     });
 
-    const info = await emailService.sendRenewalRemainderEmail(
+    const info1 = await emailService.sendRenewalRemainderEmail(
+      user,
+      subscription,
+      daysLeft,
+    );
+
+    const info2 = await smsService.sendRenewalRemainderSMS(
       user,
       subscription,
       daysLeft,
     );
 
     notification.status = "SUCCESS";
-    notification.metadata.emailId = info.messageId;
+    notification.metadata.emailId = info1.messageId;
+    notification.metadata.emailId = info2.messageId;
     await notification.save();
 
     return notification;

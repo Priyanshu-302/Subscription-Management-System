@@ -9,3 +9,13 @@ exports.generateToken = (id) => {
     console.log(error);
   }
 };
+
+exports.generateSessionToken = (email) => {
+  try {
+    return jwt.sign({ email }, process.env.JWT_SECRET, {
+      expiresIn: "10m",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
