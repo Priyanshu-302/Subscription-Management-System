@@ -12,6 +12,19 @@ router.post(
   preAuthHandler,
   authController.verifyLogin,
 );
+router.post("/forgot-password", authLimiter, authController.forgotPassword);
+router.post(
+  "/verify-forgot-otp",
+  authLimiter,
+  preAuthHandler,
+  authController.verifyForgotOtp,
+);
+router.post(
+  "/reset-password",
+  authLimiter,
+  preAuthHandler,
+  authController.resetPassword,
+);
 
 router.get("/profile", authHandler, authController.getProfile);
 router.patch("/profile", authHandler, authController.updateProfile);

@@ -3,7 +3,10 @@ const OTP = require("../models/OTP.model");
 const bcryptjs = require("bcryptjs");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const { sendWelcomeEmail } = require("../services/email.service");
+const {
+  sendWelcomeEmail,
+  sendForgotPasswordOtpEmail,
+} = require("../services/email.service");
 const { sendWelcomeSMS, sendOtpSMS } = require("../services/sms.service");
 const { generateToken, generateSessionToken } = require("../utils/token");
 
@@ -143,6 +146,95 @@ exports.updateProfile = async (userId, { name, email, phone }) => {
     }
 
     return user;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.forgotPassword = async ({ email }) => {
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await OTP.deleteMany({ email });
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOTP = await bcryptjs.hash(otp, 10);
+
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+    await OTP.create({
+      email,
+      otp: hashedOTP,
+      expiresAt,
+    });
+
+    await sendForgotPasswordOtpEmail(user, otp);
+
+    const sessionToken = generateSessionToken(email);
+
+    return {
+      sessionToken,
+      message: "OTP sent to your registered email. Please verify to continue.",
+    };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.verifyForgotOtp = async ({ otp, email }) => {
+  try {
+    const otpRecord = await OTP.findOne({ email, isUsed: false });
+    if (!otpRecord) {
+      throw new Error("Invalid OTP");
+    }
+
+    if (new Date() > otp.expiresAt) {
+      throw new Error("OTP expired");
+    }
+
+    const isMatch = await bcryptjs.compare(otp, otpRecord.otp);
+    if (!isMatch) {
+      throw new Error("Invalid OTP");
+    }
+
+    otpRecord.isUsed = true;
+    await otpRecord.save();
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const sessionToken = generateSessionToken(email);
+
+    return {
+      user,
+      sessionToken,
+      message: "OTP verified. Please enter a new password.",
+    };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.resetPassword = async ({ email, password }) => {
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    user.password = password;
+    await user.save();
+
+    return {
+      user,
+      message: "Password reset successfully. Please login.",
+    };
   } catch (error) {
     console.log(error);
   }

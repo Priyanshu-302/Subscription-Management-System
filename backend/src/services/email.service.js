@@ -93,3 +93,54 @@ exports.sendWelcomeEmail = async (user) => {
 
   return info;
 };
+
+exports.sendForgotPasswordOtpEmail = async (user, otp) => {
+  try {
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #dc2626; color: #fff; padding: 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .body { padding: 32px; color: #333; text-align: center; }
+        .otp-box { display: inline-block; background: #fef2f2; border: 2px dashed #dc2626; border-radius: 8px; padding: 16px 32px; margin: 24px 0; }
+        .otp-code { font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #dc2626; }
+        .expiry { color: #888; font-size: 13px; margin-top: 16px; }
+        .footer { background: #f8f8f8; padding: 16px; text-align: center; font-size: 12px; color: #888; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🔑 Password Reset Request</h1>
+        </div>
+        <div class="body">
+          <p>Hi <strong>${user.name}</strong>,</p>
+          <p>We received a request to reset your password. Use the OTP below to proceed.</p>
+          <div class="otp-box">
+            <div class="otp-code">${otp}</div>
+          </div>
+          <p class="expiry">⏱ This OTP expires in <strong>5 minutes</strong>.</p>
+          <p>If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+        </div>
+        <div class="footer">
+          <p>Subscription Manager &bull; Security Alert</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+    await this.sendEmail({
+      to: user.email,
+      subject: "Password Reset OTP — Subscription Manager",
+      html,
+      text: `Hi ${user.name}, your password reset OTP is: ${otp}. It expires in 5 minutes. Do not share it with anyone.`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};

@@ -94,3 +94,57 @@ exports.updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const result = await authService.forgotPassword({ email });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.verifyForgotOtp = async (req, res, next) => {
+  try {
+    const result = await authService.verifyForgotOtp({
+      otp: req.body.otp,
+      email: req.email,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+
+    console.log(password);
+    
+
+    const result = await authService.resetPassword({
+      email: req.email,
+      password,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
