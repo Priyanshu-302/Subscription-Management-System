@@ -77,11 +77,8 @@ exports.login = async ({ email, password }) => {
   }
 };
 
-exports.verifyLogin = async ({ otp, sessionToken }) => {
+exports.verifyLogin = async ({ otp, email }) => {
   try {
-    const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET);
-    const { email } = decoded;
-
     const otpRecord = await OTP.findOne({ email, isUsed: false });
 
     if (!otpRecord) {

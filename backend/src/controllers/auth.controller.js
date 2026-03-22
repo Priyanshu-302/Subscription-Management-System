@@ -27,7 +27,8 @@ exports.login = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: "OTP send to your registered mobile number. Please verify to complete login",
+      message:
+        "OTP send to your registered mobile number. Please verify to complete login",
       data: user,
     });
   } catch (error) {
@@ -37,7 +38,10 @@ exports.login = async (req, res, next) => {
 
 exports.verifyLogin = async (req, res, next) => {
   try {
-    const result = await authService.verifyLogin(req.body);
+    const result = await authService.verifyLogin({
+      otp: req.body.otp,
+      email: req.email,
+    });
 
     return res.status(200).json({
       success: true,
