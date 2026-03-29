@@ -6,7 +6,7 @@ router.use(authHandler);
 
 router.get("/summary", subscriptionController.getSummary);
 
-router.post("/", subscriptionController.createSubscription);
+router.post("/create", subscriptionController.createSubscription);
 router.get("/", subscriptionController.getAll);
 
 router.get("/:id", subscriptionController.getOne);

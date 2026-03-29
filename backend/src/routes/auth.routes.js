@@ -7,7 +7,7 @@ const { authLimiter } = require("../middlewares/rateLimiter");
 router.post("/register", authLimiter, authController.register);
 router.post("/login", authLimiter, authController.login);
 router.post(
-  "/verify-login",
+  "/verify-login-otp",
   authLimiter,
   preAuthHandler,
   authController.verifyLogin,
