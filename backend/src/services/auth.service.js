@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const {
   sendWelcomeEmail,
   sendForgotPasswordOtpEmail,
+  sendLoginOtpEmail,
 } = require("../services/email.service");
 const { sendWelcomeSMS, sendOtpSMS } = require("../services/sms.service");
 const { generateToken, generateSessionToken } = require("../utils/token");
@@ -36,10 +37,11 @@ exports.register = async ({ name, email, password, phone }) => {
     return user;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
-exports.login = async ({ email, password }) => {
+exports.login = async ({ email, password, skipOtp }) => {
   try {
     const user = await User.findOne({ email }).select("+password");
 
@@ -51,6 +53,15 @@ exports.login = async ({ email, password }) => {
 
     if (!isMatch) {
       throw new Error("Invalid email or password");
+    }
+
+    if (skipOtp) {
+      const token = generateToken(user._id);
+      return {
+        user,
+        token,
+        message: "Login successful",
+      };
     }
 
     await OTP.deleteMany({ email });
@@ -66,7 +77,7 @@ exports.login = async ({ email, password }) => {
       expiresAt,
     });
 
-    await sendOtpSMS(user, otp);
+    await sendLoginOtpEmail(user, otp);
 
     const sessionToken = generateSessionToken(email);
 
@@ -77,6 +88,7 @@ exports.login = async ({ email, password }) => {
     };
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -88,7 +100,7 @@ exports.verifyLogin = async ({ otp, email }) => {
       throw new Error("Invalid OTP");
     }
 
-    if (new Date() > otp.expiresAt) {
+    if (new Date() > otpRecord.expiresAt) {
       throw new Error("OTP expired");
     }
 
@@ -113,6 +125,7 @@ exports.verifyLogin = async ({ otp, email }) => {
     };
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -127,6 +140,7 @@ exports.getProfile = async (userId) => {
     return user;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -148,6 +162,7 @@ exports.updateProfile = async (userId, { name, email, phone }) => {
     return user;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -182,6 +197,7 @@ exports.forgotPassword = async ({ email }) => {
     };
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -192,7 +208,7 @@ exports.verifyForgotOtp = async ({ otp, email }) => {
       throw new Error("Invalid OTP");
     }
 
-    if (new Date() > otp.expiresAt) {
+    if (new Date() > otpRecord.expiresAt) {
       throw new Error("OTP expired");
     }
 
@@ -218,6 +234,7 @@ exports.verifyForgotOtp = async ({ otp, email }) => {
     };
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -237,5 +254,6 @@ exports.resetPassword = async ({ email, password }) => {
     };
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };

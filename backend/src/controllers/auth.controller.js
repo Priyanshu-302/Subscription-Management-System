@@ -18,9 +18,9 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, skipOtp } = req.body;
 
-    const user = await authService.login({ email, password });
+    const user = await authService.login({ email, password, skipOtp });
     if (!user) {
       throw new Error("Invalid email or password");
     }

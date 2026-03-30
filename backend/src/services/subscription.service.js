@@ -14,6 +14,9 @@ exports.calcNextRenewal = (startDate, billingCycle) => {
     case "QUARTERLY":
       date.setMonth(date.getMonth() + 3);
       break;
+    case "HALF_YEARLY":
+      date.setMonth(date.getMonth() + 6);
+      break;
     case "YEARLY":
       date.setFullYear(date.getFullYear() + 1);
       break;
@@ -192,6 +195,10 @@ exports.getSummary = async (userId) => {
                     then: { $divide: ["$amount", 3] },
                   },
                   {
+                    case: { $eq: ["$billingCycle", "HALF_YEARLY"] },
+                    then: { $divide: ["$amount", 6] },
+                  },
+                  {
                     case: { $eq: ["$billingCycle", "WEEKLY"] },
                     then: { $multiply: ["$amount", 4] },
                   },
@@ -215,6 +222,10 @@ exports.getSummary = async (userId) => {
                   {
                     case: { $eq: ["$billingCycle", "QUARTERLY"] },
                     then: { $multiply: ["$amount", 4] },
+                  },
+                  {
+                    case: { $eq: ["$billingCycle", "HALF_YEARLY"] },
+                    then: { $multiply: ["$amount", 2] },
                   },
                   {
                     case: { $eq: ["$billingCycle", "WEEKLY"] },

@@ -44,7 +44,7 @@ const subscriptionSchema = new mongoose.Schema(
       trim: true,
       uppercase: true,
       enum: {
-        values: ["WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"],
+        values: ["WEEKLY", "MONTHLY", "QUARTERLY", "HALF_YEARLY", "YEARLY"],
       },
       default: "MONTHLY",
     },
