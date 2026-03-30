@@ -2,13 +2,12 @@ const User = require("../models/User.model");
 const OTP = require("../models/OTP.model");
 const bcryptjs = require("bcryptjs");
 const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
 const {
   sendWelcomeEmail,
   sendForgotPasswordOtpEmail,
   sendLoginOtpEmail,
 } = require("../services/email.service");
-const { sendWelcomeSMS, sendOtpSMS } = require("../services/sms.service");
+const { sendWelcomeSMS } = require("../services/sms.service");
 const { generateToken, generateSessionToken } = require("../utils/token");
 
 exports.register = async ({ name, email, password, phone }) => {
