@@ -1,13 +1,20 @@
-import { LayoutDashboard, CreditCard, Bell, Settings, LogOut, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore } from '../../store/auth.store';
+import {
+  LayoutDashboard,
+  CreditCard,
+  Bell,
+  Settings,
+  LogOut,
+  X,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "../../store/auth.store";
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: CreditCard, label: 'Subscriptions', path: '/subscriptions' },
-  { icon: Bell, label: 'Notifications', path: '/notifications' },
-  { icon: Settings, label: 'Profile', path: '/profile' },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: CreditCard, label: "Subscriptions", path: "/subscriptions" },
+  { icon: Bell, label: "Notifications", path: "/notifications" },
+  { icon: Settings, label: "Profile", path: "/profile" },
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -21,7 +28,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 260, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
-          className="relative flex flex-col h-screen border-r border-glassBorder bg-glass backdrop-blur-xl z-40 hidden md:flex"
+          className="absolute md:relative left-0 top-0 flex flex-col h-screen border-r border-glassBorder bg-background/95 md:bg-glass backdrop-blur-xl z-50 shadow-2xl md:shadow-none"
         >
           <div className="flex items-center justify-between p-6">
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -42,10 +49,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => {
+                    if (window.innerWidth < 768) setIsOpen(false);
+                  }}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    active 
-                      ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    active
+                      ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
                   <item.icon size={20} />
