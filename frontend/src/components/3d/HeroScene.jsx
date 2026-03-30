@@ -18,12 +18,10 @@ function SubscriptionCard({ position, rotation, color, label, price }) {
       <group ref={ref} position={position}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[3, 4, 0.2]} />
-          <meshPhysicalMaterial 
+          <meshStandardMaterial 
             color={color} 
             roughness={0.2} 
-            metalness={0.1}
-            transmission={0.5}
-            thickness={2}
+            metalness={0.5}
           />
         </mesh>
         {/* Glow border simulated by a slightly larger plane behind */}
@@ -68,8 +66,12 @@ function SubscriptionCard({ position, rotation, color, label, price }) {
 
 export default function HeroScene() {
   return (
-    <div className="w-full h-full absolute inset-0 z-0 opacity-80 pointer-events-none">
-      <Canvas camera={{ position: [0, 0, 12], fov: 45 }}>
+    <div className="w-full h-full absolute inset-0 z-0 opacity-80 pointer-events-none touch-none">
+      <Canvas 
+        camera={{ position: [0, 0, 12], fov: 45 }}
+        dpr={[1, 1.5]}
+        gl={{ powerPreference: "high-performance", antialias: false }}
+      >
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.2} penumbra={1} intensity={2} color="#8b5cf6" />
         <pointLight position={[-10, -10, -10]} intensity={1} color="#3b82f6" />
