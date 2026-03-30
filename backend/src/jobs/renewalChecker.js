@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const Subscriptions = require("../services/subscription.service");
-const Notification = require("../services/Notification.service");
+const Notification = require("../services/notification.service");
 
 // Run the renewal check at everyday 8 AM
 exports.runRenewalCheck = async () => {
@@ -32,11 +32,9 @@ exports.runRenewalCheck = async () => {
 // Run expiry cleanup
 exports.runExpiryCleanup = async () => {
   try {
-    const subscriptionModel = require("../models/Subscription.model");
-
     console.log(`[${new Date().toISOString()}] Running expiry cleanup...`);
 
-    const result = await subscriptionModel.updateMany(
+    const result = await Subscriptions.updateMany(
       {
         status: "active",
         nextRenewal: { $lt: new Date() },
