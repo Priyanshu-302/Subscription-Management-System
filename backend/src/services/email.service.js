@@ -1,30 +1,22 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-// 1. Create a transporter object
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// 2. Send the email
-exports.sendEmail = async ({ to, subject, html, text }) => {
-  const info = await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+const FROM = "Subscription Manager <onboarding@resend.dev>";
+
+const sendEmail = async ({ to, subject, html, text }) => {
+  const { data, error } = await resend.emails.send({
+    from: FROM,
     to,
     subject,
     html,
     text,
   });
-
-  return info;
+  if (error) throw new Error(error.message);
+  return data;
 };
 
-exports.sendRenewalRemainderEmail = async (user, subscription, daysLeft) => {
+exports.sendRenewalReminderEmail = async (user, subscription, daysLeft) => {
   const html = `
     <!DOCTYPE html>
     <html>
@@ -43,12 +35,10 @@ exports.sendRenewalRemainderEmail = async (user, subscription, daysLeft) => {
     </head>
     <body>
       <div class="container">
-        <div class="header">
-          <h1>⏰ Subscription Renewal Reminder</h1>
-        </div>
+        <div class="header"><h1>⏰ Subscription Renewal Reminder</h1></div>
         <div class="body">
           <p>Hi <strong>${user.name}</strong>,</p>
-          <p>Your subscription is renewing soon. Here are the details:</p>
+          <p>Your subscription is renewing soon:</p>
           <div class="highlight">
             <p><strong>Service:</strong> ${subscription.name}</p>
             <p><strong>Amount:</strong> ${subscription.currency} ${subscription.amount}</p>
@@ -56,144 +46,76 @@ exports.sendRenewalRemainderEmail = async (user, subscription, daysLeft) => {
             <p><strong>Renewal Date:</strong> ${new Date(subscription.nextRenewal).toDateString()}</p>
             <p><strong>Days Remaining:</strong> <span class="badge">${daysLeft} day${daysLeft !== 1 ? "s" : ""}</span></p>
           </div>
-          <p>If you wish to cancel or modify this subscription, please do so before the renewal date.</p>
         </div>
-        <div class="footer">
-          <p>Subscription Manager &bull; You're receiving this because you enabled email alerts.</p>
-        </div>
+        <div class="footer"><p>Subscription Manager &bull; You enabled email alerts.</p></div>
       </div>
     </body>
     </html>
   `;
 
-  const info = await this.sendEmail({
+  return sendEmail({
     to: user.email,
-    subject: `⏰ Reminder: "${subscription.name}" renews in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`,
+    subject: `⏰ "${subscription.name}" renews in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`,
     html,
-    text: `Hi ${user.name}, your subscription "${subscription.name}" (${subscription.currency} ${subscription.amount}) renews on ${new Date(subscription.nextRenewal).toDateString()} — ${daysLeft} day(s) from now.`,
+    text: `Hi ${user.name}, your subscription "${subscription.name}" renews on ${new Date(subscription.nextRenewal).toDateString()} — ${daysLeft} day(s) from now.`,
   });
+};
 
-  return info;
+exports.sendOtpEmail = async (user, otp) => {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:32px;">
+      <h2 style="color:#4f46e5;">🔐 Login Verification</h2>
+      <p>Hi <strong>${user.name}</strong>,</p>
+      <p>Your OTP is:</p>
+      <div style="background:#eef2ff;border:2px dashed #4f46e5;border-radius:8px;padding:16px 32px;text-align:center;margin:24px 0;">
+        <span style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#4f46e5;">${otp}</span>
+      </div>
+      <p style="color:#888;font-size:13px;">⏱ Expires in <strong>5 minutes</strong>. Do not share it.</p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Your Login OTP — Subscription Manager",
+    html,
+    text: `Your OTP is: ${otp}. Expires in 5 minutes.`,
+  });
+};
+
+exports.sendForgotPasswordOtpEmail = async (user, otp) => {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:32px;">
+      <h2 style="color:#dc2626;">🔑 Password Reset</h2>
+      <p>Hi <strong>${user.name}</strong>,</p>
+      <p>Your password reset OTP is:</p>
+      <div style="background:#fef2f2;border:2px dashed #dc2626;border-radius:8px;padding:16px 32px;text-align:center;margin:24px 0;">
+        <span style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#dc2626;">${otp}</span>
+      </div>
+      <p style="color:#888;font-size:13px;">⏱ Expires in <strong>5 minutes</strong>. Do not share it.</p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject: "Password Reset OTP — Subscription Manager",
+    html,
+    text: `Your password reset OTP is: ${otp}. Expires in 5 minutes.`,
+  });
 };
 
 exports.sendWelcomeEmail = async (user) => {
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 32px;">
-      <h2 style="color: #4f46e5;">Welcome to Subscription Manager! 🎉</h2>
+    <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:32px;">
+      <h2 style="color:#4f46e5;">Welcome to Subscription Manager! 🎉</h2>
       <p>Hi <strong>${user.name}</strong>,</p>
       <p>Your account has been created. Start tracking your subscriptions and never miss a renewal.</p>
-      <p style="color: #888; font-size: 12px; margin-top: 40px;">Subscription Manager</p>
     </div>
   `;
 
-  const info = await this.sendEmail({
+  return sendEmail({
     to: user.email,
     subject: "Welcome to Subscription Manager!",
     html,
-    text: `Hi ${user.name}, welcome to Subscription Manager! Your account is ready.`,
+    text: `Hi ${user.name}, welcome to Subscription Manager!`,
   });
-
-  return info;
-};
-
-exports.sendLoginOtpEmail = async (user, otp) => {
-  try {
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: #dc2626; color: #fff; padding: 24px; text-align: center; }
-        .header h1 { margin: 0; font-size: 22px; }
-        .body { padding: 32px; color: #333; text-align: center; }
-        .otp-box { display: inline-block; background: #fef2f2; border: 2px dashed #dc2626; border-radius: 8px; padding: 16px 32px; margin: 24px 0; }
-        .otp-code { font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #dc2626; }
-        .expiry { color: #888; font-size: 13px; margin-top: 16px; }
-        .footer { background: #f8f8f8; padding: 16px; text-align: center; font-size: 12px; color: #888; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🔑 Account Login Request</h1>
-        </div>
-        <div class="body">
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>We received a request to login your account. Use the OTP below to proceed.</p>
-          <div class="otp-box">
-            <div class="otp-code">${otp}</div>
-          </div>
-          <p class="expiry">⏱ This OTP expires in <strong>5 minutes</strong>.</p>
-          <p>If you did not request a login request, please ignore this email.</p>
-        </div>
-        <div class="footer">
-          <p>Subscription Manager &bull; Security Alert</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-    await this.sendEmail({
-      to: user.email,
-      subject: "Account Login OTP — Subscription Manager",
-      html,
-      text: `Hi ${user.name}, your login OTP is: ${otp}. It expires in 5 minutes. Do not share it with anyone.`,
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-exports.sendForgotPasswordOtpEmail = async (user, otp) => {
-  try {
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-        .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: #dc2626; color: #fff; padding: 24px; text-align: center; }
-        .header h1 { margin: 0; font-size: 22px; }
-        .body { padding: 32px; color: #333; text-align: center; }
-        .otp-box { display: inline-block; background: #fef2f2; border: 2px dashed #dc2626; border-radius: 8px; padding: 16px 32px; margin: 24px 0; }
-        .otp-code { font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #dc2626; }
-        .expiry { color: #888; font-size: 13px; margin-top: 16px; }
-        .footer { background: #f8f8f8; padding: 16px; text-align: center; font-size: 12px; color: #888; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🔑 Password Reset Request</h1>
-        </div>
-        <div class="body">
-          <p>Hi <strong>${user.name}</strong>,</p>
-          <p>We received a request to reset your password. Use the OTP below to proceed.</p>
-          <div class="otp-box">
-            <div class="otp-code">${otp}</div>
-          </div>
-          <p class="expiry">⏱ This OTP expires in <strong>5 minutes</strong>.</p>
-          <p>If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
-        </div>
-        <div class="footer">
-          <p>Subscription Manager &bull; Security Alert</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-    await this.sendEmail({
-      to: user.email,
-      subject: "Password Reset OTP — Subscription Manager",
-      html,
-      text: `Hi ${user.name}, your password reset OTP is: ${otp}. It expires in 5 minutes. Do not share it with anyone.`,
-    });
-  } catch (error) {
-    console.log(error);
-  }
 };
