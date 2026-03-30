@@ -61,7 +61,7 @@ exports.sendRenewalReminderEmail = async (user, subscription, daysLeft) => {
   });
 };
 
-exports.sendOtpEmail = async (user, otp) => {
+exports.sendLoginOtpEmail = async (user, otp) => {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:32px;">
       <h2 style="color:#4f46e5;">🔐 Login Verification</h2>
