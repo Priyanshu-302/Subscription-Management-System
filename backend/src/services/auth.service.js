@@ -7,7 +7,6 @@ const {
   sendForgotPasswordOtpEmail,
   sendLoginOtpEmail,
 } = require("../services/email.service");
-const { sendWelcomeSMS } = require("../services/sms.service");
 const { generateToken, generateSessionToken } = require("../utils/token");
 
 exports.register = async ({ name, email, password, phone }) => {
@@ -26,10 +25,6 @@ exports.register = async ({ name, email, password, phone }) => {
     });
 
     sendWelcomeEmail(user).catch((err) => {
-      console.log(err);
-    });
-
-    sendWelcomeSMS(user).catch((err) => {
       console.log(err);
     });
 

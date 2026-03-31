@@ -1,6 +1,5 @@
 const Notification = require("../models/Notification.model");
 const emailService = require("../services/email.service");
-const smsService = require("../services/sms.service");
 
 exports.sendRenewalRemainder = async (user, subscription) => {
   try {
@@ -27,21 +26,14 @@ exports.sendRenewalRemainder = async (user, subscription) => {
       },
     });
 
-    const info1 = await emailService.sendRenewalRemainderEmail(
-      user,
-      subscription,
-      daysLeft,
-    );
-
-    const info2 = await smsService.sendRenewalRemainderSMS(
+    const info = await emailService.sendRenewalRemainderEmail(
       user,
       subscription,
       daysLeft,
     );
 
     notification.status = "SUCCESS";
-    notification.metadata.emailId = info1.messageId;
-    notification.metadata.emailId = info2.messageId;
+    notification.metadata.emailId = info.messageId;
     await notification.save();
 
     return notification;
@@ -144,39 +136,3 @@ exports.remove = async (userId, notificationId) => {
     console.log(error);
   }
 };
-
-// exports.getStats = async (userId) => {
-//   try {
-//     const stats = await Notification.aggregate([
-//       {
-//         $match: {
-//           userId: new mongoose.Types.ObjectId(userId.toString()),
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: { type: "$type", status: "$status" },
-//           count: { $sum: 1 },
-//           latest: { $max: "$createdAt" },
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: "$_id.type",
-//           statuses: {
-//             $push: {
-//               status: "$_id.status",
-//               count: "$count",
-//               latest: "$latest",
-//             },
-//           },
-//           total: { $sum: "$count" },
-//         },
-//       },
-//     ]);
-
-//     return stats;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
