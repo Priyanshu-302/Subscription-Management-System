@@ -1,19 +1,32 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let transporter = null;
 
-const FROM = "Subscription Manager <onboarding@resend.dev>";
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  }
+  return transporter;
+};
 
 const sendEmail = async ({ to, subject, html, text }) => {
-  const { data, error } = await resend.emails.send({
-    from: FROM,
+  const transport = getTransporter();
+  const info = await transport.sendMail({
+    from: `Subscription Manager <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,
     text,
   });
-  if (error) throw new Error(error.message);
-  return data;
+  return info;
 };
 
 exports.sendRenewalReminderEmail = async (user, subscription, daysLeft) => {
