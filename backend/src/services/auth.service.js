@@ -24,10 +24,6 @@ exports.register = async ({ name, email, password, phone }) => {
       phone,
     });
 
-    sendWelcomeEmail(user).catch((err) => {
-      console.log(err);
-    });
-
     return user;
   } catch (error) {
     console.log(error);
@@ -35,7 +31,7 @@ exports.register = async ({ name, email, password, phone }) => {
   }
 };
 
-exports.login = async ({ email, password, skipOtp }) => {
+exports.login = async ({ email, password }) => {
   try {
     const user = await User.findOne({ email }).select("+password");
 
@@ -49,73 +45,12 @@ exports.login = async ({ email, password, skipOtp }) => {
       throw new Error("Invalid email or password");
     }
 
-    if (skipOtp) {
-      const token = generateToken(user._id);
-      return {
-        user,
-        token,
-        message: "Login successful",
-      };
-    }
-
-    await OTP.deleteMany({ email });
-
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const hashedOTP = await bcryptjs.hash(otp, 10);
-
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
-
-    await OTP.create({
-      email,
-      otp: hashedOTP,
-      expiresAt,
-    });
-
-    await sendLoginOtpEmail(user, otp);
-
-    const sessionToken = generateSessionToken(email);
-
-    return {
-      sessionToken,
-      message:
-        "OTP sent to your registered mobile number. Please verify to continue.",
-    };
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-};
-
-exports.verifyLogin = async ({ otp, email }) => {
-  try {
-    const otpRecord = await OTP.findOne({ email, isUsed: false });
-
-    if (!otpRecord) {
-      throw new Error("Invalid OTP");
-    }
-
-    if (new Date() > otpRecord.expiresAt) {
-      throw new Error("OTP expired");
-    }
-
-    const isMatch = await bcryptjs.compare(otp, otpRecord.otp);
-    if (!isMatch) {
-      throw new Error("Invalid OTP");
-    }
-
-    otpRecord.isUsed = true;
-    await otpRecord.save();
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const token = generateToken(user._id);
 
     return {
-      user,
       token,
+      message:
+        "Logged in successfully",
     };
   } catch (error) {
     console.log(error);

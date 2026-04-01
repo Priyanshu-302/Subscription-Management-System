@@ -5,7 +5,7 @@ let transporter = null;
 const getTransporter = () => {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
+      service: "gmail",
       port: 587,
       secure: false,
       auth: {

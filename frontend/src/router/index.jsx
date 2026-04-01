@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import Register from '../pages/Register';
 import Login from '../pages/Login';
-import VerifyOtp from '../pages/VerifyOtp';
 import ForgotPassword from '../pages/ForgotPassword';
 import VerifyForgotOtp from '../pages/VerifyForgotOtp';
 import ResetPassword from '../pages/ResetPassword';
@@ -24,7 +23,6 @@ export const AppRouter = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/forgot-password/verify" element={<VerifyForgotOtp />} />
         <Route path="/reset-password" element={<ResetPassword />} />

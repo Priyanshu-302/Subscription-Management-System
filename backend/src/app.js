@@ -17,9 +17,14 @@ app.set("trust proxy", 1);
 // CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "https://subscription-management-system-phi.vercel.app",
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-session-token", "x-reset-token"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-session-token",
+      "x-reset-token",
+    ],
   }),
 );
 
