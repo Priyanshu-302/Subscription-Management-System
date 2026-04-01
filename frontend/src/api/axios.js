@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/auth.store';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: 'https://subscription-management-system-mao2.onrender.com',
 });
 
 api.interceptors.request.use(
